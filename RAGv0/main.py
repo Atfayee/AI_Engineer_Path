@@ -75,7 +75,11 @@ def call_llm(prompt: str):
         temperature=0.2
     )
     return response.choices[0].message.content
- 
+
+# metadata filter
+SOURCE="Llama.md"
+TOP_K=5
+
 def main():
     base_path = Path(__file__).parent
     data_dir = base_path / "data"
@@ -100,7 +104,8 @@ def main():
     query = sys.argv[1]
     # print(f"query: {query}")
     query_vec = embed_query(query, embed_model=embed_model)
-    scores, indices = index.search(query_vec, k=5)
+    scores, indices = index.search(query_vec, k=TOP_K*3)
+
     retrieved = []
     for rank, idx in enumerate(indices[0]):
         retrieved.append({
@@ -114,8 +119,15 @@ def main():
     contexts = []
     for item in retrieved:
         chunk = item["chunk"]
+        if SOURCE and chunk.source != SOURCE:
+            continue
         block = f"[{chunk.source}#chunk_{chunk.chunk_id}\n{chunk.text}"
         contexts.append(block)
+        if len(context) > TOP_K:
+            break
+    if not context:
+        print("No matching documents found with given metadata filter")
+        return
     context = "\n\n".join(contexts)
     prompt = f"""
         You are a helpful QA assistant.
