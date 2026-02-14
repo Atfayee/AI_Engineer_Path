@@ -119,11 +119,11 @@ def main():
     contexts = []
     for item in retrieved:
         chunk = item["chunk"]
-        if SOURCE and chunk.source != SOURCE:
+        if SOURCE and chunk.source.name != SOURCE:
             continue
-        block = f"[{chunk.source}#chunk_{chunk.chunk_id}\n{chunk.text}"
+        block = f"[{chunk.source.name}#chunk_{chunk.chunk_id}]\n{chunk.text}"
         contexts.append(block)
-        if len(context) > TOP_K:
+        if len(contexts) >= TOP_K:
             break
     if not context:
         print("No matching documents found with given metadata filter")
