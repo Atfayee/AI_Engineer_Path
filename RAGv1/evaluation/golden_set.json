@@ -1,0 +1,22 @@
+[
+    {
+        "question": "What is SLA penalty in version 3.2?",
+        "golden_answer": "The SLA penalty in version 3.2 is 5% service credit",
+        "golden_chunks": [
+            {
+                "doc_id": "Llama.md",
+                "chunk_id": 12
+            }
+        ]
+    },
+    {
+        "question": "What is the definition of SLA?",
+        "golden_answer": "SLA stands for Service Level Agreement.",
+        "golden_chunks": [
+            {
+                "doc_id": "Llama.md",
+                "chunk_id": 3
+            }
+        ]
+    }
+]

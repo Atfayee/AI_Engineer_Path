@@ -76,7 +76,7 @@ def clean_text(text: str) -> str:
     t = text.replace("\r\n", "\n")
     t = "\n".join(l for l in t.splitlines())
     while "\n\n\n" in t:
-        t.replace("\n\n\n", "\n\n")
+        t = t.replace("\n\n\n", "\n\n")
     return t
 
 
@@ -85,7 +85,7 @@ def clean_text(text: str) -> str:
 # ==========================
 
 def split_by_headers(text: str):
-    sections = re.split(r"(?=^#{1,6} )", flags=re.MULTILINE)
+    sections = re.split(r"(?=^#{1,6} )", text, flags=re.MULTILINE)
     return [s.strip() for s in sections]
 
 def recursive_chunks(section: str, max_size=1000) -> list[str]:
@@ -125,7 +125,7 @@ def chunk_text(doc: dict) -> list[Chunk]:
                 text=sc,
                 last_edited=doc["last_edited"]
             ))
-        cid += 1
+            cid += 1
     return chunks
 
 
@@ -233,7 +233,10 @@ def retrieval(pipeline: RAGPipeline, query: str, top_k = TOP_K):
 
     return [c for _, c in scored[:top_k]]
 
-
+def retrieve_with_context(pipeline: RAGPipeline, query: str, top_k=TOP_K):
+    retrieved = retrieval(pipeline=pipeline, query=query, top_k=top_k)
+    contexts = [c.text for c in retrieved]
+    return retrieved, contexts
 
 # ==========================
 # Generate
