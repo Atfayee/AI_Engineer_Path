@@ -8,6 +8,7 @@ from openai import OpenAI
 from sentence_transformers import SentenceTransformer, CrossEncoder
 from rank_bm25 import BM25Okapi
 from qdrant_client import QdrantClient, models
+from trace_logger import TraceLogger
 
 load_dotenv()
 
@@ -37,7 +38,7 @@ client = OpenAI(
 embed_model = SentenceTransformer("all-MiniLM-L6-v2")
 reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
 
-
+logger = TraceLogger()
 # ==========================
 # Data Structures
 # ==========================
@@ -243,12 +244,24 @@ def retrieve_with_context(pipeline: RAGPipeline, query: str, top_k=TOP_K):
 # ==========================
 
 def generate_answer(pipeline: RAGPipeline, query: str):
+
+    logger.start_query(query=query)
+    logger.start_timer("retrieval")
+
     retrieved = retrieval(pipeline=pipeline, query=query)
+    logger.stop_timer("retrieval")
+    dense_hits = [
+        {"doc_id":c.doc_id, "chunk_id":c.chunk_id}
+        for c in retrieved
+    ]
+    logger.log_retrieval(dense_hits=dense_hits)
     contexts = [
         f"[{c.source.name}#chunk_{c.chunk_id}]\n{c.text}"
         for c in retrieved
     ]
     context = "\n\n".join(contexts)
+    
+    logger.start_timer("llm")
     prompt = f"""
 You are a helpful assistant.
 Answer using ONLY the context.
@@ -266,6 +279,16 @@ Answer:
         messages=[{"role":"user", "content":prompt}],
         temperature=0.2
     )
+
+    logger.stop_timer("llm")
+    logger.log_llm(
+        model="meta-llama/llama-3-8b-instruct",
+        prompt_tokens=response.usage.prompt_tokens,
+        completion_tokens=response.usage.completion_tokens
+    )
+
+    logger.end_query()
+
     return response.choices[0].message.content
 
 # ==========================

@@ -1,0 +1,20 @@
+{
+    "query_id": "123-abc",
+    "query": "What is SLA penalty?",
+    "retrieval": {
+      "dense_hits": [
+        {"doc_id": "SLA.md", "chunk_id": 2}
+      ]
+    },
+    "llm": {
+      "model": "meta-llama/llama-3-8b-instruct",
+      "prompt_tokens": 1240,
+      "completion_tokens": 200
+    },
+    "timing": {
+      "retrieval_ms": 12.4,
+      "llm_ms": 810.3,
+      "total_ms": 832.1
+    }
+  }
+  
